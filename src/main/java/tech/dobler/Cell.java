@@ -1,52 +1,70 @@
 package tech.dobler;
 
-public final class Cell {
+import java.util.EnumSet;
+import java.util.Objects;
 
-    private static final Cell EMPTY = new Cell();
-    private static final Cell OBSTACLE = new Cell(CellType.OBSTACLE);
+public final class Cell {
+    public static final Cell EMPTY = new Cell(CellType.EMPTY);
+    public static final Cell OBSTACLE = new Cell(CellType.OBSTACLE);
 
     private final CellType type;
+    private final String label;
 
     private Cell(CellType type) {
-        this.type = type;
+        this(type, "");
     }
 
-    private Cell() {
-        this(null);
+    private Cell(CellType type, String label) {
+        this.type = type;
+        this.label = label;
     }
 
     public static boolean connectsTo(Cell aboveOrLeft, Cell rightOrBelow, boolean isVertical) {
-        if ((aboveOrLeft.type == null) ^ (rightOrBelow.type == null)) return false;
-        if (aboveOrLeft.type == null) return true;
-
-        return switch (aboveOrLeft.type)
-        {
-            case UP -> CellType.DOWN.equals(rightOrBelow.type);
-            case RIGHT -> CellType.LEFT.equals(rightOrBelow.type);
-            case DOWN -> CellType.UP.equals(rightOrBelow.type);
-            case LEFT -> CellType.RIGHT.equals(rightOrBelow.type);
-            case OBSTACLE -> isVertical ? !CellType.UP.equals(rightOrBelow.type) : !CellType.LEFT.equals(rightOrBelow.type);
+        return switch (aboveOrLeft.type) {
+            case EMPTY -> true;
+            case VERTICAL -> isVertical
+                    ? EnumSet.of(CellType.VERTICAL, CellType.EMPTY, CellType.UP).contains(rightOrBelow.type)
+                    : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+            case HORIZONTAL -> isVertical
+                    ? !EnumSet.of(CellType.UP, CellType.VERTICAL).contains(rightOrBelow.type)
+                    : EnumSet.of(CellType.EMPTY, CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+            case UP, LEFT, OBSTACLE -> isVertical
+                    ? !EnumSet.of(CellType.UP, CellType.VERTICAL).contains(rightOrBelow.type)
+                    : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+            case RIGHT -> isVertical
+                    ? !EnumSet.of(CellType.VERTICAL, CellType.UP).contains(rightOrBelow.type)
+                    : EnumSet.of(CellType.EMPTY, CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+            case DOWN -> isVertical
+                    ? EnumSet.of(CellType.VERTICAL, CellType.EMPTY, CellType.UP).contains(rightOrBelow.type)
+                    : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
         };
     }
 
     public static Cell ofType(CellType type) {
-        if (CellType.OBSTACLE.equals(type)) return makeBorder();
-        return new Cell(type);
+        return ofType(type, "");
+    }
+
+    public static Cell ofType(CellType type, String label) {
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(label);
+        if (CellType.OBSTACLE.equals(type) && label.isEmpty()) return makeObstacle();
+        return new Cell(type, label);
     }
 
     public static Cell makeEmpty() {
         return EMPTY;
     }
 
-    public static Cell makeBorder() {
+    public static Cell makeObstacle() {
         return OBSTACLE;
     }
 
     @Override
     public String toString() {
-        if (type == null) return "□";
-
         return switch (type) {
+            case EMPTY -> label.isEmpty() ? "□" : label;
+            case VERTICAL -> "↕";
+            case HORIZONTAL -> "↔";
             case OBSTACLE -> "x";
             case UP -> "^";
             case RIGHT -> ">";
@@ -66,5 +84,21 @@ public final class Cell {
     @Override
     public int hashCode() {
         return type.hashCode();
+    }
+
+    public Cell vReversed() {
+        return switch (type) {
+            case EMPTY, RIGHT, OBSTACLE, LEFT, VERTICAL, HORIZONTAL -> this;
+            case UP -> Cell.ofType(CellType.DOWN);
+            case DOWN -> Cell.ofType(CellType.UP);
+        };
+    }
+
+    public Cell hReversed() {
+        return switch (type) {
+            case EMPTY, DOWN, UP, OBSTACLE, VERTICAL, HORIZONTAL -> this;
+            case RIGHT -> Cell.ofType(CellType.LEFT);
+            case LEFT -> Cell.ofType(CellType.RIGHT);
+        };
     }
 }

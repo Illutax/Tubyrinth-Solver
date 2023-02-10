@@ -15,7 +15,7 @@ public final class Grid {
             for (int j = 0; j < cells.length; j++) {
                 final Cell c;
                 if (i == 0 || i == 9 || j == 0 || j == 9) {
-                    c = Cell.makeBorder();
+                    c = Cell.makeObstacle();
                 } else {
                     c = Cell.makeEmpty();
                 }
@@ -44,7 +44,19 @@ public final class Grid {
                 .collect(Collectors.joining(", ", "[", "]"));
     }
 
-    public void add(Position position, Cell cell) {
-        gridInternal[position.y()][position.x()] = cell;
+    public boolean add(Position position, Cell cell) {
+        final var y = position.y();
+        final var x = position.x();
+        if (gridInternal[y][x] != Cell.EMPTY) return false;
+        if (!Cell.connectsTo(gridInternal[y - 1][x], cell, true)) return false;
+        if (!Cell.connectsTo(cell, gridInternal[y + 1][x], true)) return false;
+        if (!Cell.connectsTo(gridInternal[y][x - 1], cell, false)) return false;
+        if (!Cell.connectsTo(cell, gridInternal[y][x + 1], false)) return false;
+        put(cell, y, x);
+        return true;
+    }
+
+    private void put(Cell cell, int y, int x) {
+        gridInternal[y][x] = cell;
     }
 }

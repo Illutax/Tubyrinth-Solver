@@ -2,23 +2,26 @@ package tech.dobler;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CellTest {
 
     @Nested
-    class Ctor {
+    class ToString {
         @Test
         void border() {
-            assertThat(Cell.makeBorder()).hasToString("x");
+            assertThat(Cell.OBSTACLE).hasToString("x");
         }
 
         @Test
-        void noDir() {
+        void empty() {
             assertThat(Cell.makeEmpty()).hasToString("□");
+        }
+
+        @Test
+        void emptyWithLabel() {
+            assertThat(Cell.ofType(CellType.EMPTY, "z")).hasToString("z");
         }
 
         @Test
@@ -40,73 +43,229 @@ class CellTest {
         void leftEdge() {
             assertThat(Cell.ofType(CellType.LEFT)).hasToString("<");
         }
+
+        @Test
+        void horizontal() {
+            assertThat(Cell.ofType(CellType.HORIZONTAL)).hasToString("↔");
+        }
+
+        @Test
+        void vertical() {
+            assertThat(Cell.ofType(CellType.VERTICAL)).hasToString("↕");
+        }
     }
 
     @Nested
     class ConnectsTo {
 
         @Test
-        void null2Null() {
-            assertThat(Cell.connectsTo(Cell.makeEmpty(), Cell.makeEmpty(), true)).isTrue();
+        void anyThingElse2Itself() {
+            Cell cell = Cell.ofType(CellType.EMPTY);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
+
+            cell = Cell.ofType(CellType.OBSTACLE);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
+
+            cell = Cell.ofType(CellType.UP);
+            assertThat(Cell.connectsTo(cell, cell, true)).isFalse();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
+
+            cell = Cell.ofType(CellType.DOWN);
+            assertThat(Cell.connectsTo(cell, cell, true)).isFalse();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
+
+            cell = Cell.ofType(CellType.LEFT);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isFalse();
+
+            cell = Cell.ofType(CellType.RIGHT);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isFalse();
+
+            cell = Cell.ofType(CellType.VERTICAL);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
+
+            cell = Cell.ofType(CellType.HORIZONTAL);
+            assertThat(Cell.connectsTo(cell, cell, true)).isTrue();
+            assertThat(Cell.connectsTo(cell, cell, false)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void null2AnyThingElse_isFalse(CellType type) {
-            assertThat(Cell.connectsTo(Cell.makeEmpty(), Cell.ofType(type), true)).isFalse();
+        @Test
+        void obstacle2AnyThingElse() {
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.UP), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.DOWN), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.LEFT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.RIGHT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.HORIZONTAL), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.VERTICAL), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.UP), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.LEFT), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.RIGHT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.VERTICAL), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.ofType(CellType.HORIZONTAL), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.EMPTY, true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.makeObstacle(), Cell.EMPTY, false)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void anyThingElse2Null_isFalse(CellType type) {
-            assertThat(Cell.connectsTo(Cell.ofType(type), Cell.makeEmpty(), true)).isFalse();
+        @Test
+        void anyThingElse2Obstacle() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.makeObstacle(), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.makeObstacle(), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.makeObstacle(), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.makeObstacle(), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.makeObstacle(), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.makeObstacle(), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.makeObstacle(), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.makeObstacle(), true)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.makeObstacle(), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.makeObstacle(), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.makeObstacle(), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.makeObstacle(), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.makeObstacle(), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.makeObstacle(), false)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void anyThingElse2Itself_isFalse(CellType type) {
-            final Cell cell = Cell.ofType(type);
-            assertThat(Cell.connectsTo(cell, cell, true)).isEqualTo(CellType.OBSTACLE.equals(type));
+        @Test
+        void empty2AnyThingElse() {
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.UP), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.UP), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.DOWN), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.LEFT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.LEFT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.RIGHT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.RIGHT), true)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.HORIZONTAL), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.HORIZONTAL), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.VERTICAL), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.EMPTY, Cell.ofType(CellType.VERTICAL), true)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void up2Down(CellType type) {
-            final Cell cell = Cell.ofType(CellType.UP);
-            assertThat(Cell.connectsTo(cell, Cell.ofType(CellType.DOWN), true)).isTrue();
-            if (!(CellType.DOWN.equals(type))) {
-                assertThat(Cell.connectsTo(cell, Cell.ofType(type), true)).isFalse();
-            }
+        @Test
+        void anyThing2Empty() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.EMPTY, true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.EMPTY, false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.EMPTY, true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.EMPTY, false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.EMPTY, false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.EMPTY, true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.EMPTY, false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.EMPTY, true)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.EMPTY, true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.EMPTY, false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.EMPTY, false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.EMPTY, true)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void down2Up(CellType type) {
-            final Cell cell = Cell.ofType(CellType.DOWN);
-            assertThat(Cell.connectsTo(cell, Cell.ofType(CellType.UP), true)).isTrue();
-            if (!(CellType.UP.equals(type))) {
-                assertThat(Cell.connectsTo(cell, Cell.ofType(type), true)).isFalse();
-            }
+        @Test
+        void up() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.VERTICAL), true)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.LEFT), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.DOWN), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.LEFT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.RIGHT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.RIGHT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.VERTICAL), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.HORIZONTAL), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.UP), Cell.ofType(CellType.HORIZONTAL), false)).isFalse();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void left2Right(CellType type) {
-            final Cell cell = Cell.ofType(CellType.LEFT);
-            assertThat(Cell.connectsTo(cell, Cell.ofType(CellType.RIGHT), false)).isTrue();
-            if (!(CellType.RIGHT.equals(type))) {
-                assertThat(Cell.connectsTo(cell, Cell.ofType(type), false)).isFalse();
-            }
+        @Test
+        void down() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.UP), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.VERTICAL), true)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.RIGHT), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.LEFT), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.LEFT), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.HORIZONTAL), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.HORIZONTAL), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.UP), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.RIGHT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.DOWN), Cell.ofType(CellType.VERTICAL), false)).isTrue();
         }
 
-        @ParameterizedTest
-        @EnumSource(CellType.class)
-        void right2Left(CellType type) {
-            final Cell cell = Cell.ofType(CellType.RIGHT);
-            assertThat(Cell.connectsTo(cell, Cell.ofType(CellType.LEFT), false)).isTrue();
-            if (!(CellType.LEFT.equals(type))) {
-                assertThat(Cell.connectsTo(cell, Cell.ofType(type), false)).isFalse();
-            }
+        @Test
+        void left() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.RIGHT), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.HORIZONTAL), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.UP), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.VERTICAL), true)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.RIGHT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.DOWN), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.UP), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.HORIZONTAL), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.LEFT), Cell.ofType(CellType.VERTICAL), false)).isTrue();
+        }
+
+        @Test
+        void right() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.LEFT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.HORIZONTAL), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.UP), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.VERTICAL), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.VERTICAL), true)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.LEFT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.DOWN), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.UP), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.HORIZONTAL), true)).isTrue();
+        }
+
+        @Test
+        void horizontal() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.LEFT), false)).isTrue();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.RIGHT), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.UP), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.VERTICAL), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.VERTICAL), true)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.LEFT), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.DOWN), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.DOWN), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.UP), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.HORIZONTAL), Cell.ofType(CellType.RIGHT), true)).isTrue();
+        }
+
+        @Test
+        void vertical() {
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.UP), true)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.DOWN), true)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.RIGHT), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.LEFT), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.LEFT), false)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.HORIZONTAL), true)).isFalse();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.HORIZONTAL), false)).isFalse();
+
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.UP), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.RIGHT), false)).isTrue();
+            assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.DOWN), false)).isTrue();
         }
     }
 }
