@@ -21,7 +21,7 @@ class CellTest {
 
         @Test
         void emptyWithLabel() {
-            assertThat(Cell.ofType(CellType.EMPTY, "z")).hasToString("z");
+            assertThat(Cell.ofType(CellType.OBSTACLE, "z")).hasToString("z");
         }
 
         @Test

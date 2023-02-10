@@ -62,10 +62,10 @@ public final class Cell {
     @Override
     public String toString() {
         return switch (type) {
-            case EMPTY -> label.isEmpty() ? "□" : label;
+            case EMPTY -> "□";
             case VERTICAL -> "↕";
             case HORIZONTAL -> "↔";
-            case OBSTACLE -> "x";
+            case OBSTACLE -> label.isEmpty() ? "x" : label;
             case UP -> "^";
             case RIGHT -> ">";
             case DOWN -> "v";
