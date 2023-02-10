@@ -1,15 +1,22 @@
 package tech.dobler;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Grid {
 
     private static final int SIZE = 10;
-    private final Cell[][] gridInternal = new Cell[SIZE][SIZE];
+    private final Cell[][] gridInternal;
+
+    public Grid(Grid grid) {
+        gridInternal = Arrays.stream(grid.gridInternal)
+                .map(Cell[]::clone)
+                .toArray($ -> grid.gridInternal.clone());
+    }
 
     public Grid() {
+        gridInternal = new Cell[SIZE][SIZE];
         for (int i = 0; i < gridInternal.length; i++) {
             Cell[] cells = gridInternal[i];
             for (int j = 0; j < cells.length; j++) {
@@ -58,5 +65,27 @@ public final class Grid {
 
     private void put(Cell cell, int y, int x) {
         gridInternal[y][x] = cell;
+    }
+
+    public void put(Position pos, Cell cell) {
+        gridInternal[pos.y()][pos.x()] = cell;
+    }
+
+    public List<Position> openEnds() {
+        final var res = new LinkedHashSet<Position>();
+        for (int y = 1; y < gridInternal.length - 1; y++) {
+            Cell[] cells = gridInternal[y];
+            for (int x = 1; x < cells.length - 1; x++) {
+                final Cell c = cells[x];
+                if (!Cell.EMPTY.equals(c)) continue;
+
+                var b = EnumSet.of(CellType.HORIZONTAL, CellType.RIGHT).contains(cells[x - 1].type());
+                b = b || EnumSet.of(CellType.HORIZONTAL, CellType.LEFT).contains(cells[x + 1].type());
+                b = b || EnumSet.of(CellType.VERTICAL, CellType.UP).contains(gridInternal[y + 1][x].type());
+                b = b || EnumSet.of(CellType.VERTICAL, CellType.DOWN).contains(gridInternal[y - 1][x].type());
+                if (b) res.add(new Position(x, y));
+            }
+        }
+        return new ArrayList<>(res);
     }
 }

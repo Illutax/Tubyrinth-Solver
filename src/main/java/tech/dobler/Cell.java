@@ -101,4 +101,8 @@ public final class Cell {
             case LEFT -> Cell.ofType(CellType.RIGHT);
         };
     }
+
+    public CellType type() {
+        return type;
+    }
 }

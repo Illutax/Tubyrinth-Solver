@@ -10,6 +10,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GridTest {
 
     @Test
+    void equals() {
+        assertThat(new Grid()).isEqualTo(new Grid());
+    }
+
+    @Test
+    void cloneTest() {
+        final var grid = new Grid();
+        grid.put(new Position(0, 1), Cell.ofType(CellType.RIGHT));
+        grid.put(new Position(9, 5), Cell.ofType(CellType.LEFT));
+
+        assertThat(grid).isEqualTo(new Grid(grid));
+    }
+
+    @Test
     void ctor_empty_grid() {
         // Act
         var grid = new Grid();
@@ -19,6 +33,67 @@ class GridTest {
                 [\
                 [x, x, x, x, x, x, x, x, x, x], \
                 [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, x, x, x, x, x, x, x, x, x]]\
+                """);
+    }
+
+    @Test
+    void ctorWithAlteredBorders() {
+        // Arrange
+        Grid grid = gridWithTwoFaucets();
+
+        // Assert
+        assertThat(grid).hasToString("""
+                [\
+                [x, x, x, x, x, x, x, x, x, x], \
+                [>, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, <], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, □, □, □, □, □, □, □, □, x], \
+                [x, x, x, x, x, x, x, x, x, x]]\
+                """);
+    }
+
+    @Test
+    void openEnds() {
+        // Arrange
+        Grid grid = gridWithTwoFaucets();
+        grid.put(new Position(3,3), Cell.ofType(CellType.HORIZONTAL));
+
+        grid.put(new Position(5,5), Cell.ofType(CellType.VERTICAL));
+
+        // Assert
+        assertThat(grid.openEnds()).containsExactly(new Position(1,1), new Position(2,3), new Position(4,3), new Position(5,4), new Position(8, 5), new Position(5,6));
+    }
+
+    @Test
+    void canAddPiece() {
+        // Arrange
+        var grid = new Grid();
+        grid.put(new Position(0, 1), Cell.ofType(CellType.RIGHT));
+
+        // Act
+        assertThat(grid.add(new Position(1,1), Cell.ofType(CellType.HORIZONTAL))).isTrue();
+        assertThat(grid.add(new Position(1,1), Cell.ofType(CellType.LEFT))).isFalse();
+        grid.put(new Position(1,1), Cell.EMPTY);
+        assertThat(grid.add(new Position(1,1), Cell.ofType(CellType.LEFT))).isTrue();
+
+        // Assert
+        assertThat(grid).hasToString("""
+                [\
+                [x, x, x, x, x, x, x, x, x, x], \
+                [>, <, □, □, □, □, □, □, □, x], \
                 [x, □, □, □, □, □, □, □, □, x], \
                 [x, □, □, □, □, □, □, □, □, x], \
                 [x, □, □, □, □, □, □, □, □, x], \
@@ -65,4 +140,10 @@ class GridTest {
                         """);
     }
 
+    private static Grid gridWithTwoFaucets() {
+        var grid = new Grid();
+        grid.put(new Position(0, 1), Cell.ofType(CellType.RIGHT));
+        grid.put(new Position(9, 5), Cell.ofType(CellType.LEFT));
+        return grid;
+    }
 }
