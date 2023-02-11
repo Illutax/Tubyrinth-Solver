@@ -22,21 +22,27 @@ public final class Cell {
     public static boolean connectsTo(Cell aboveOrLeft, Cell rightOrBelow, boolean isVertical) {
         return switch (aboveOrLeft.type) {
             case EMPTY -> true;
-            case VERTICAL -> isVertical
-                    ? EnumSet.of(CellType.VERTICAL, CellType.EMPTY, CellType.UP).contains(rightOrBelow.type)
+            case VERTICAL, DOWN -> isVertical
+                    ? EnumSet.of(CellType.UP, CellType.VERTICAL, CellType.EMPTY).contains(rightOrBelow.type)
                     : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
-            case HORIZONTAL -> isVertical
+            case HORIZONTAL, RIGHT -> isVertical
                     ? !EnumSet.of(CellType.UP, CellType.VERTICAL).contains(rightOrBelow.type)
-                    : EnumSet.of(CellType.EMPTY, CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+                    : EnumSet.of(CellType.LEFT, CellType.HORIZONTAL, CellType.EMPTY).contains(rightOrBelow.type);
             case UP, LEFT, OBSTACLE -> isVertical
                     ? !EnumSet.of(CellType.UP, CellType.VERTICAL).contains(rightOrBelow.type)
                     : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
-            case RIGHT -> isVertical
-                    ? !EnumSet.of(CellType.VERTICAL, CellType.UP).contains(rightOrBelow.type)
-                    : EnumSet.of(CellType.EMPTY, CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
-            case DOWN -> isVertical
-                    ? EnumSet.of(CellType.VERTICAL, CellType.EMPTY, CellType.UP).contains(rightOrBelow.type)
-                    : !EnumSet.of(CellType.LEFT, CellType.HORIZONTAL).contains(rightOrBelow.type);
+        };
+    }
+
+    public Cell rotate() {
+        return switch (type) {
+            case OBSTACLE, EMPTY -> this;
+            case UP -> Cell.ofType(CellType.RIGHT, label);
+            case RIGHT -> Cell.ofType(CellType.DOWN, label);
+            case DOWN -> Cell.ofType(CellType.LEFT, label);
+            case LEFT -> Cell.ofType(CellType.UP, label);
+            case VERTICAL -> Cell.ofType(CellType.HORIZONTAL, label);
+            case HORIZONTAL -> Cell.ofType(CellType.VERTICAL, label);
         };
     }
 

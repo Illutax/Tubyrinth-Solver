@@ -11,7 +11,7 @@ public record Piece(Cell[][] cells) {
             {Cell.EMPTY, Cell.ofType(CellType.OBSTACLE, "z"), Cell.EMPTY},
             {Cell.ofType(CellType.RIGHT), Cell.ofType(CellType.DOWN), Cell.EMPTY}
     });
-    public static final Piece SHORT = new Piece(new Cell[][]{{Cell.ofType(CellType.UP), Cell.ofType(CellType.LEFT), Cell.ofType(CellType.RIGHT)}});
+    public static final Piece SHORT = new Piece(new Cell[][]{{Cell.ofType(CellType.LEFT), Cell.ofType(CellType.DOWN), Cell.ofType(CellType.UP)}});
     public static final Piece LONG = new Piece(new Cell[][]{{Cell.ofType(CellType.UP), Cell.ofType(CellType.DOWN), Cell.ofType(CellType.UP), Cell.ofType(CellType.RIGHT)}});
     public static final Piece R = new Piece(new Cell[][]{{Cell.ofType(CellType.LEFT), Cell.ofType(CellType.RIGHT)}, {Cell.EMPTY, Cell.ofType(CellType.LEFT)}});
     public static final Piece T = new Piece(new Cell[][]{
@@ -70,5 +70,17 @@ public record Piece(Cell[][] cells) {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(cells);
+    }
+
+    public Piece rotate() {
+        final var w = cells.length;
+        final var h = cells[0].length;
+        final var res = new Cell[h][w];
+        for (int y = 0; y < w; y++) {
+            for (int x = 0; x < h; x++) {
+                res[x][w - 1 - y] = cells[y][x].rotate();
+            }
+        }
+        return new Piece(res);
     }
 }

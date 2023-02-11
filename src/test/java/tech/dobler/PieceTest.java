@@ -72,7 +72,7 @@ class PieceTest {
         @Test
         @Real
         void shortPipe() {
-            assertThat(Piece.SHORT).hasToString("[[^, <, >]]");
+            assertThat(Piece.SHORT).hasToString("[[<, v, ^]]");
         }
 
         @Test
@@ -97,6 +97,35 @@ class PieceTest {
         @Real
         void l() {
             assertThat(Piece.L).hasToString("[[□, □, >], [^, v, v]]");
+        }
+    }
+
+    @Nested
+    class Rotate {
+
+        @Test
+        void single() {
+            final var piece = new Piece(new Cell[][]{{Cell.ofType(CellType.LEFT)}});
+            assertThat(piece).hasToString("[[<]]");
+            assertThat(piece.rotate()).hasToString("[[^]]");
+        }
+
+        @Test
+        void doublePiece() {
+            final var piece = new Piece(new Cell[][]{{Cell.ofType(CellType.LEFT), Cell.ofType(CellType.UP)}});
+            assertThat(piece).hasToString("[[<, ^]]");
+            assertThat(piece.rotate()).hasToString("[[^], [>]]");
+        }
+
+        @Test
+        void shortPiece() {
+            assertThat(Piece.SHORT).hasToString("[[<, v, ^]]");
+            assertThat(Piece.SHORT.rotate()).hasToString("""
+                    [\
+                    [^], \
+                    [<], \
+                    [>]]\
+                    """);
         }
     }
 }

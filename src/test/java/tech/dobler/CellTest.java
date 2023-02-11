@@ -268,4 +268,30 @@ class CellTest {
             assertThat(Cell.connectsTo(Cell.ofType(CellType.VERTICAL), Cell.ofType(CellType.DOWN), false)).isTrue();
         }
     }
+
+    @Nested
+    class Rotate {
+
+        @Test
+        void doubleEnded() {
+            var cell = Cell.ofType(CellType.VERTICAL);
+            assertThat(cell.rotate()).isEqualTo(Cell.ofType(CellType.HORIZONTAL));
+            assertThat(cell.rotate().rotate()).isEqualTo(Cell.ofType(CellType.VERTICAL));
+        }
+
+        @Test
+        void singleEnded() {
+            var cell = Cell.ofType(CellType.UP);
+            assertThat(cell.rotate()).isEqualTo(Cell.ofType(CellType.RIGHT));
+            assertThat(cell.rotate().rotate()).isEqualTo(Cell.ofType(CellType.DOWN));
+            assertThat(cell.rotate().rotate().rotate()).isEqualTo(Cell.ofType(CellType.LEFT));
+            assertThat(cell.rotate().rotate().rotate().rotate()).isEqualTo(Cell.ofType(CellType.UP));
+        }
+
+        @Test
+        void identity() {
+            assertThat(Cell.makeEmpty().rotate()).isEqualTo(Cell.makeEmpty());
+            assertThat(Cell.makeObstacle().rotate()).isEqualTo(Cell.makeObstacle());
+        }
+    }
 }
