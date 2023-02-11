@@ -3,6 +3,8 @@ package tech.dobler;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PieceTest {
@@ -128,7 +130,18 @@ class PieceTest {
                     """);
         }
     }
-}
 
-@interface Real {
+    @Nested
+    class OpenEnds {
+        @Test
+        void single() {
+            final var piece = new Piece(new Cell[][]{{Cell.ofType(CellType.LEFT)}});
+            assertThat(piece.openEnds()).isEqualTo(List.of(new Position(0,0)));
+        }
+
+        @Test
+        void tPipe() {
+            assertThat(Piece.T.openEnds()).isEqualTo(List.of(new Position(0,0),new Position(2,0),new Position(1,1)));
+        }
+    }
 }

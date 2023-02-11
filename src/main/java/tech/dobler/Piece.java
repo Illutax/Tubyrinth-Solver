@@ -1,7 +1,6 @@
 package tech.dobler;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -82,5 +81,19 @@ public record Piece(Cell[][] cells) {
             }
         }
         return new Piece(res);
+    }
+
+    public List<Position> openEnds() {
+        final var res = new ArrayList<Position>();
+        for (int y = 0; y < cells.length; y++) {
+            final var row = cells[y];
+            for (int x = 0; x < row.length; x++) {
+                if (!EnumSet.of(CellType.EMPTY, CellType.OBSTACLE).contains(row[x].type()))
+                {
+                    res.add(new Position(x,y));
+                }
+            }
+        }
+        return res;
     }
 }
