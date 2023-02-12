@@ -54,10 +54,6 @@ public record Piece(Cell[][] cells) {
         return new Piece(res);
     }
 
-    Piece hflipped() {
-        throw new UnsupportedOperationException("Not yet implemented and probably never will. :)");
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,19 +77,5 @@ public record Piece(Cell[][] cells) {
             }
         }
         return new Piece(res);
-    }
-
-    public List<Position> openEnds() {
-        final var res = new ArrayList<Position>();
-        for (int y = 0; y < cells.length; y++) {
-            final var row = cells[y];
-            for (int x = 0; x < row.length; x++) {
-                if (!EnumSet.of(CellType.EMPTY, CellType.OBSTACLE).contains(row[x].type()))
-                {
-                    res.add(new Position(x,y));
-                }
-            }
-        }
-        return res;
     }
 }

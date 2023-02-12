@@ -1,12 +1,13 @@
 package tech.dobler;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Grid {
+    private static final Logger LOGGER = java.util.logging.Logger.getLogger(Grid.class.getName());
 
-    private static final int SIZE = 10;
     private final Cell[][] gridInternal;
 
     public Grid(Grid grid) {
@@ -16,12 +17,16 @@ public final class Grid {
     }
 
     public Grid() {
-        gridInternal = new Cell[SIZE][SIZE];
-        for (int i = 0; i < gridInternal.length; i++) {
+        this(10);
+    }
+
+    public Grid(int size) {
+        gridInternal = new Cell[size][size];
+        for (int i = 0; i < size; i++) {
             Cell[] cells = gridInternal[i];
-            for (int j = 0; j < cells.length; j++) {
+            for (int j = 0; j < size; j++) {
                 final Cell c;
-                if (i == 0 || i == 9 || j == 0 || j == 9) {
+                if (i == 0 || i == size - 1 || j == 0 || j == size - 1) { // NOSONAR https://community.sonarsource.com/t/s2589-field-value-not-properly-read-in-nested-for-loops/83747
                     c = Cell.makeObstacle();
                 } else {
                     c = Cell.makeEmpty();
@@ -51,14 +56,20 @@ public final class Grid {
                 .collect(Collectors.joining(", ", "[", "]"));
     }
 
+    private static boolean logAndFalse(Position position, Cell cell)
+    {
+        LOGGER.warning(() -> "Couldn't add '%s' at %s".formatted(cell, position));
+        return false;
+    }
+
     public boolean add(Position position, Cell cell) {
         final var y = position.y();
         final var x = position.x();
-        if (gridInternal[y][x] != Cell.EMPTY) return false;
-        if (!Cell.connectsTo(gridInternal[y - 1][x], cell, true)) return false;
-        if (!Cell.connectsTo(cell, gridInternal[y + 1][x], true)) return false;
-        if (!Cell.connectsTo(gridInternal[y][x - 1], cell, false)) return false;
-        if (!Cell.connectsTo(cell, gridInternal[y][x + 1], false)) return false;
+        if (gridInternal[y][x] != Cell.EMPTY) return logAndFalse(position, cell);
+        if (!Cell.connectsTo(gridInternal[y - 1][x], cell, true)) return logAndFalse(position, cell);
+        if (!Cell.connectsTo(cell, gridInternal[y + 1][x], true)) return logAndFalse(position, cell);
+        if (!Cell.connectsTo(gridInternal[y][x - 1], cell, false)) return logAndFalse(position, cell);
+        if (!Cell.connectsTo(cell, gridInternal[y][x + 1], false)) return logAndFalse(position, cell);
         put(cell, y, x);
         return true;
     }
@@ -87,5 +98,11 @@ public final class Grid {
             }
         }
         return new ArrayList<>(res);
+    }
+
+    public String prettyPrint() {
+        return Stream.of(gridInternal)
+                .map(Arrays::toString)
+                .collect(Collectors.joining("\n"));
     }
 }
