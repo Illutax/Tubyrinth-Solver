@@ -25,26 +25,28 @@ public class GridSolver {
         boolean success = true;
         var g = gSup.get();
         var p = piece;
-        for (int r = 0; r < 3; r++) {
-            if (r != 0) p = p.rotate();
-            final var cells = p.cells();
-            for (int y = 0; y < cells.length; y++) {
-                final var row = cells[y];
-                for (int x = 0; x < row.length; x++) {
-                    if (!g.add(position.plus(new Position(x, y)), row[x])) {
-                        success = false;
-                        break;
+        for (int r = 0; r < 3; r++, p = p.rotate()) {
+            for (int f = 0; f < 2; f++) {
+                if (f > 0) p = p.flipped();
+                final var cells = p.cells();
+                for (int y = 0; y < cells.length; y++) {
+                    final var row = cells[y];
+                    for (int x = 0; x < row.length; x++) {
+                        if (!g.add(position.plus(new Position(x, y)), row[x])) {
+                            success = false;
+                            break;
+                        }
                     }
                 }
-            }
-            final var result = g.prettyPrint();
-            if (!success) {
-                LOGGER.warning(() -> "FUCK%n%s".formatted(result));
-                g = gSup.get();
-                success = true;
-            } else {
-                LOGGER.info(() -> "FUCK YEA!%n%s".formatted(result));
-                return g;
+                final var result = g.prettyPrint();
+                if (!success) {
+                    LOGGER.warning(() -> "FUCK%n%s".formatted(result));
+                    g = gSup.get();
+                    success = true;
+                } else {
+                    LOGGER.info(() -> "FUCK YEA!%n%s".formatted(result));
+                    return g;
+                }
             }
         }
         return null;
